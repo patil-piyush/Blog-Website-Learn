@@ -17,11 +17,11 @@ app.use(express.urlencoded({extended: false}));
 
 app.get("/", (req, res) => {
     return res.render("home");
-})
+});
 
 
 app.use('/user', userRoute);
 
 app.listen(PORT, () => {
     console.log(`Server is running on PORT - ${PORT}`);
-})
+});

@@ -1,10 +1,17 @@
 const express = require('express');
-const User = require('./model/user');
+const User = require('../models/user');
 
 const router = express.Router();
 
 router.get('/signin', (req, res) => {
     return res.render("signin");
+});
+
+router.post('/signin', async (req,res) => {
+    const {email, password} = req.body;
+    const user = await User.matchPassword(email, password);
+    console.log('User', user);
+    return res.redirect("/");
 });
 
 router.get('/signup', (req, res) => {
@@ -14,7 +21,7 @@ router.get('/signup', (req, res) => {
 router.post('/signup', async(req, res) => {
     const { fullName, email, password } = req.body;
     await User.create({
-        fullname,
+        fullName,
         email,
         password,
     });

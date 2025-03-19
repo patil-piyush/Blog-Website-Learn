@@ -1,5 +1,10 @@
 const { Schema, model } = require('mongoose');
-const crypto = require('crypto')
+const crypto = require('crypto');
+const { 
+    createTokenForUser,
+    validateToken
+} = require('../services/authentication')
+
 
 const userSchema = new Schema({
     fullName: {
@@ -30,27 +35,28 @@ const userSchema = new Schema({
 }, { timestamps: true });
 
 
-userSchema.static("matchPassword",async function(email,password){
-    const user = await this.findOne({email});
-    if(!user) throw new Error('User Not Found!!');
+userSchema.static("matchPasswordAndGenerateToken", async function (email, password) {
+    const user = await this.findOne({ email });
+    if (!user) throw new Error('User Not Found!!');
 
     const salt = user.salt;
     const hashedPassword = user.password;
 
     const userProvidedHash = crypto.createHmac("sha256", salt).update(password).digest("hex");
 
-    if(userProvidedHash !== hashedPassword) 
+    if (userProvidedHash !== hashedPassword)
         throw new Error("Incorrect password!!");
 
-    return user;
+    const token = createTokenForUser(user);
+    return token
 });
 
 
 //middleware for crypting the password using salt
-userSchema.pre('save', function(next){
+userSchema.pre('save', function (next) {
     const user = this;
 
-    if(!user.isModified("password")) return;
+    if (!user.isModified("password")) return;
 
     const salt = crypto.randomBytes(16).toString();
     const hashedPassword = crypto.createHmac("sha256", salt).update(user.password).digest("hex");
